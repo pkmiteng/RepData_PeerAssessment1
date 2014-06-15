@@ -1,13 +1,19 @@
 # Reproducible Research: Peer Assessment 1
 
 Setting locale to en_US.
-```{r}
+
+```r
 Sys.setlocale("LC_ALL", "en_US")
+```
+
+```
+## [1] "en_US/en_US/en_US/C/en_US/de_DE.UTF-8"
 ```
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 data <- read.csv("activity.csv")
 data$date <- strptime(data$date, format="%Y-%m-%d")
 ```
@@ -15,7 +21,8 @@ data$date <- strptime(data$date, format="%Y-%m-%d")
 ## What is mean total number of steps taken per day?
 
 ### Histogram showing the total number of steps taken each day
-```{r histogram,fig.width=11, fig.height=6, dependson="readData", fig.retina=2}
+
+```r
 stepsPerDay <- tapply(data$steps, as.Date(data$date), sum)
 
 lPos <- barplot(stepsPerDay,
@@ -29,15 +36,18 @@ axis(side=1, at=lPos,
      labels=format(seq(min(data$date), max(data$date), by="day"), format="%d") )
 ```
 
+<img src="figure/histogram.png" title="plot of chunk histogram" alt="plot of chunk histogram" width="792" />
+
 ### Simple Statistics 
 
-The mean for steps / day is __`r sprintf("%.2f", mean(stepsPerDay, na.rm =TRUE) )`__.
+The mean for steps / day is __10766.19__.
 
-The median for steps / day is __`r sprintf("%.2f", median(stepsPerDay, na.rm=TRUE) )`__.
+The median for steps / day is __10765.00__.
 
 ## What is the average daily activity pattern?
 
-```{r timeseries,fig.width=11, fig.height=6, dependson="readData", fig.retina=2}
+
+```r
 averagePerInterval <- tapply(data$steps, data$interval, mean, na.rm=TRUE)
 
 plot(averagePerInterval,
@@ -56,13 +66,16 @@ text(y=averagePerInterval[maxAvg], x=maxAvg + 4, label=sprintf("max = %.2f steps
 points(x=maxAvg, y=averagePerInterval[maxAvg], cex=2, col="red", lwd=2)
 ```
 
+<img src="figure/timeseries.png" title="plot of chunk timeseries" alt="plot of chunk timeseries" width="792" />
+
 ## Imputing missing values
 
-There are __`r sum(is.na(data$steps))`__ values missing in the original dataset.
+There are __2304__ values missing in the original dataset.
 
 We create a new copy of that dataset and impute the missing values from the corresponding 5min interval average.
 
-```{r }
+
+```r
 newdata <- data
 
 for(i in seq(1, nrow(data)) ) {
@@ -74,7 +87,8 @@ for(i in seq(1, nrow(data)) ) {
 
 ### Resulting histogram with imputed data
 ### Histogram showing the total number of steps taken each day
-```{r histogram_2,fig.width=11, fig.height=6, dependson="readData", fig.retina=2}
+
+```r
 newStepsPerDay <- tapply(newdata$steps, as.Date(newdata$date), sum)
 
 lPos <- barplot(newStepsPerDay, xaxt="n", yaxt="n",
@@ -86,18 +100,21 @@ axis(side=1, at=lPos,
      labels=format(seq(min(newdata$date), max(newdata$date), by="day"), format="%d") )
 ```
 
+<img src="figure/histogram_2.png" title="plot of chunk histogram_2" alt="plot of chunk histogram_2" width="792" />
+
 ### Simple Statistics for new dataset
 
-The new mean for steps / day is __`r sprintf("%.2f", mean(newStepsPerDay, na.rm =TRUE) )`__.
+The new mean for steps / day is __10766.19__.
 
-The new median for steps / day is __`r sprintf("%.2f", median(newStepsPerDay, na.rm=TRUE) )`__.
+The new median for steps / day is __10766.19__.
 
 Both values are now identical.
 With the original dataset the median was a tiny bit lower than the mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r }
+
+```r
 # create new column which hold true if date is weekday and false if it is weekend
 data$weekday <- !(weekdays(data$date, abbreviate=T) %in% c("Sat", "Sun"))
 
@@ -112,7 +129,7 @@ weekday.maxat <- as.numeric(names(which.max(averageWeekday))) # at what time is 
 ```
 
 As shown in the graphs below there is quite a difference between weekends (A) and weekdays (B) in total average steps / 5min interval.
-On a weekend the maximum average of __`r weekend.maxavg`__ is at about __`r weekend.maxat`__h (green). But on a weekday the maximum average of __`r weekday.maxavg`__ is at about __`r weekday.maxat`__h (orange). Thats about __`r weekend.maxat-weekday.maxat-40`__min earlier.
+On a weekend the maximum average of __175.00__ is at about __915__h (green). But on a weekday the maximum average of __234.10__ is at about __835__h (orange). Thats about __40__min earlier.
 
 The blue lines (a,b,c) in both activity diagrams show times which are quite different between weekends and weekdays.
 * a) On weekdays there is a lot more activity between about 6h and 8h present than on a weekend. This is likely to be caused of people getting up early for work.
@@ -121,7 +138,8 @@ The blue lines (a,b,c) in both activity diagrams show times which are quite diff
 
 The activity patterns between weekday and weekend are clearly different!
 
-```{r weekday_vs_weekend,fig.width=11, fig.height=11, fig.retina=2}
+
+```r
 par(mfrow=c(2,1))
 par(mar=c(4.5,4.5,2,1))
 
@@ -167,11 +185,3 @@ abline(h=max(averageWeekend), col="darkgreen", lwd=1, lty=2)
 abline(v=which.max(averageWeekend), col="darkgreen", lwd=1, lty=2)
 text(y=max(averageWeekend)+10, x=20, col="darkgreen", label="max weekend")
 points(x=which.max(averageWeekend), y=max(averageWeekend), cex=2, col="darkgreen", lwd=2)
-
-lines(x=c(67,97), y=c(-6, -6), col="blue", lwd=2) # get up early on weekdays
-text(x=95, y=0, col="blue", label="a")
-lines(x=c(145,212), y=c(-6, -6), col="blue", lwd=2) # weekend go shopping!?
-text(x=210, y=0, col="blue", label="b")
-lines(x=c(236,260), y=c(-6, -6), col="blue", lwd=2) # go party on weekends
-text(x=258, y=0, col="blue", label="c")
-```
